@@ -6,9 +6,9 @@ A customizable Obsidian sidebar that organizes real vault files and folders unde
 
 ## Interaction demo
 
-![Expand a folder and open its file-management menu](assets/sidebar-navigation-demo.gif)
+![Expand a folder in Sidebar Navigation](assets/sidebar-navigation-demo.gif)
 
-The screenshots use fictional sections, folders, and notes; they do not contain data from a real vault.
+Captured from the real Obsidian interface in an isolated demo vault containing only fictional sections, folders, and notes. No personal vault content is shown.
 
 ## Features
 

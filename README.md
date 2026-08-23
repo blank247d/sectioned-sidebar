@@ -45,4 +45,4 @@ node --check main.js
 
 ## License
 
-[MIT](LICENSE) © 2026 ld000
+[MIT](LICENSE) © 2026 blank247d

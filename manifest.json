@@ -1,10 +1,9 @@
 {
   "id": "notion-navigation",
   "name": "Sidebar Navigation",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "minAppVersion": "1.8.0",
   "description": "Create custom sidebar sections backed by real folders and notes.",
-  "author": "ld000",
-  "authorUrl": "https://github.com/ld000",
+  "author": "blank247d",
   "isDesktopOnly": false
 }

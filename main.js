@@ -9,29 +9,212 @@ const {
   Setting,
   TFile,
   TFolder,
+  getLanguage,
   normalizePath,
   setIcon,
 } = require("obsidian");
 
 const VIEW_TYPE = "notion-navigation-view";
 const LEADING_EMOJI_RE = /^((?:\p{Regional_Indicator}{2}|\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?)*)\s*/u;
-const DEFAULT_SECTION_ICONS = {
-  最爱: "star",
-  共享: "users",
-  私人: "lock",
-  其他: "archive",
-};
+const LANGUAGE_OPTIONS = new Set(["auto", "zh", "en"]);
+const DEFAULT_SECTIONS = [
+  { key: "defaultFavorites", icon: "star" },
+  { key: "defaultShared", icon: "users" },
+  { key: "defaultPersonal", icon: "lock", includeRootFolders: true },
+  { key: "defaultOther", icon: "archive" },
+];
 const ICON_CHOICES = {
-  star: "星标",
-  users: "共享",
-  lock: "私人",
-  folder: "文件夹",
-  home: "主页",
-  briefcase: "工作",
-  globe: "公开",
-  archive: "归档",
-  heart: "喜爱",
-  "book-open": "知识库",
+  star: "iconStar",
+  users: "iconShared",
+  lock: "iconPrivate",
+  folder: "iconFolder",
+  home: "iconHome",
+  briefcase: "iconWork",
+  globe: "iconPublic",
+  archive: "iconArchive",
+  heart: "iconFavorite",
+  "book-open": "iconKnowledgeBase",
+};
+
+const TRANSLATIONS = {
+  zh: {
+    name: "名称",
+    cancel: "取消",
+    save: "保存",
+    confirm: "确认",
+    nameRequired: "名称不能为空",
+    searchAdd: "搜索要加入导航的文件夹或笔记…",
+    navigation: "导航",
+    newSection: "新建一级分区",
+    navigationSettings: "导航设置",
+    addToSection: "在“{name}”中添加",
+    editSection: "编辑“{name}”",
+    addFolderOrNote: "添加文件夹或笔记",
+    removeMissingItem: "移除失效项目",
+    folder: "文件夹",
+    note: "笔记",
+    manageItem: "管理 {name}",
+    newFolder: "新建文件夹",
+    addExistingFolderOrNote: "添加已有文件夹或笔记",
+    addCurrentNote: "添加当前笔记",
+    addExistingItem: "添加已有项目",
+    renameSection: "重命名分区",
+    moveUp: "上移",
+    moveDown: "下移",
+    deleteSection: "删除分区",
+    openInNewTab: "在新标签页中打开",
+    openInNewPane: "在新标签组中打开",
+    newNote: "新建笔记",
+    duplicate: "创建副本",
+    rename: "重命名",
+    delete: "删除",
+    cannotCreateNote: "无法新建笔记：{error}",
+    cannotCreateFolder: "无法新建文件夹：{error}",
+    copyCreated: "已创建副本：{path}",
+    cannotCreateCopy: "无法创建副本：{error}",
+    navigationManagement: "导航管理",
+    collapseFolder: "收起文件夹",
+    expandFolder: "展开文件夹",
+    moveToSection: "移到“{name}”",
+    removeFromNavigation: "从导航移除",
+    settingsIntro: "一级分区只属于导航，不改变真实文件路径。二级项目始终指向仓库中的真实文件夹或笔记。",
+    language: "语言",
+    languageDesc: "跟随 Obsidian，或手动选择插件界面语言。自定义分区名称不会被翻译。",
+    followObsidian: "跟随 Obsidian",
+    simplifiedChinese: "简体中文",
+    english: "English",
+    openAtStartup: "启动时打开导航",
+    openAtStartupDesc: "在左侧栏创建并显示导航标签，同时保留原生文件列表。",
+    topLevelSections: "一级分区",
+    navigationItemCountOne: "{count} 个导航项目",
+    navigationItemCountOther: "{count} 个导航项目",
+    sectionName: "分区名称",
+    iconStar: "星标",
+    iconShared: "共享",
+    iconPrivate: "私人",
+    iconFolder: "文件夹",
+    iconHome: "主页",
+    iconWork: "工作",
+    iconPublic: "公开",
+    iconArchive: "归档",
+    iconFavorite: "喜爱",
+    iconKnowledgeBase: "知识库",
+    addTopLevelSection: "添加一级分区",
+    addTopLevelSectionDesc: "分区名称和图标之后都可以修改。",
+    addSection: "添加分区",
+    openSidebarNavigation: "打开侧边栏导航",
+    openNavigation: "打开导航",
+    addCurrentNoteToNavigation: "把当前笔记加入导航",
+    unnamed: "未命名",
+    defaultFavorites: "最爱",
+    defaultShared: "共享",
+    defaultPersonal: "私人",
+    defaultOther: "其他",
+    cannotCreateSidebar: "无法创建左侧导航标签",
+    createSectionTitle: "新建一级分区",
+    sectionNamePlaceholder: "例如：学习、工作、归档",
+    create: "创建",
+    renameSectionTitle: "重命名一级分区",
+    deleteSectionTitle: "删除“{name}”？",
+    deleteSectionDescription: "只会删除导航分区及其中的固定项，不会删除或移动任何真实文件。",
+    createFolderInSectionTitle: "在“{name}”中新建文件夹",
+    createFolderDescription: "文件夹会创建在 Obsidian 仓库根目录；导航分区本身不会成为真实路径。",
+    folderName: "文件夹名称",
+    folderNamePlaceholder: "例如：新项目",
+    createFolder: "创建文件夹",
+    invalidFolderName: "文件夹名称不能包含路径或系统保留字符",
+    duplicateRootItem: "仓库根目录中已存在同名项目",
+    folderCreated: "已创建文件夹：{path}",
+  },
+  en: {
+    name: "Name",
+    cancel: "Cancel",
+    save: "Save",
+    confirm: "Confirm",
+    nameRequired: "Name cannot be empty",
+    searchAdd: "Search for a folder or note to add…",
+    navigation: "Navigation",
+    newSection: "New top-level section",
+    navigationSettings: "Navigation settings",
+    addToSection: "Add to “{name}”",
+    editSection: "Edit “{name}”",
+    addFolderOrNote: "Add a folder or note",
+    removeMissingItem: "Remove missing item",
+    folder: "Folder",
+    note: "Note",
+    manageItem: "Manage {name}",
+    newFolder: "New folder",
+    addExistingFolderOrNote: "Add existing folder or note",
+    addCurrentNote: "Add current note",
+    addExistingItem: "Add existing item",
+    renameSection: "Rename section",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    deleteSection: "Delete section",
+    openInNewTab: "Open in new tab",
+    openInNewPane: "Open in new pane",
+    newNote: "New note",
+    duplicate: "Make a copy",
+    rename: "Rename",
+    delete: "Delete",
+    cannotCreateNote: "Could not create note: {error}",
+    cannotCreateFolder: "Could not create folder: {error}",
+    copyCreated: "Copy created: {path}",
+    cannotCreateCopy: "Could not create copy: {error}",
+    navigationManagement: "Navigation management",
+    collapseFolder: "Collapse folder",
+    expandFolder: "Expand folder",
+    moveToSection: "Move to “{name}”",
+    removeFromNavigation: "Remove from navigation",
+    settingsIntro: "Top-level sections exist only in navigation and do not change real file paths. Their items always point to real folders or notes in the vault.",
+    language: "Language",
+    languageDesc: "Follow Obsidian or choose the plugin interface language. Custom section names are never translated.",
+    followObsidian: "Follow Obsidian",
+    simplifiedChinese: "简体中文",
+    english: "English",
+    openAtStartup: "Open navigation on startup",
+    openAtStartupDesc: "Create and show the Navigation tab in the left sidebar while keeping the native File Explorer available.",
+    topLevelSections: "Top-level sections",
+    navigationItemCountOne: "{count} navigation item",
+    navigationItemCountOther: "{count} navigation items",
+    sectionName: "Section name",
+    iconStar: "Star",
+    iconShared: "Shared",
+    iconPrivate: "Private",
+    iconFolder: "Folder",
+    iconHome: "Home",
+    iconWork: "Work",
+    iconPublic: "Public",
+    iconArchive: "Archive",
+    iconFavorite: "Favorite",
+    iconKnowledgeBase: "Knowledge base",
+    addTopLevelSection: "Add top-level section",
+    addTopLevelSectionDesc: "You can change the section name and icon later.",
+    addSection: "Add section",
+    openSidebarNavigation: "Open Sidebar Navigation",
+    openNavigation: "Open navigation",
+    addCurrentNoteToNavigation: "Add current note to navigation",
+    unnamed: "Untitled",
+    defaultFavorites: "Favorites",
+    defaultShared: "Shared",
+    defaultPersonal: "Personal",
+    defaultOther: "Other",
+    cannotCreateSidebar: "Could not create the Navigation tab",
+    createSectionTitle: "New top-level section",
+    sectionNamePlaceholder: "For example: Study, Work, Archive",
+    create: "Create",
+    renameSectionTitle: "Rename top-level section",
+    deleteSectionTitle: "Delete “{name}”?",
+    deleteSectionDescription: "This removes only the navigation section and its pinned items. It will not delete or move any real files.",
+    createFolderInSectionTitle: "Create a folder in “{name}”",
+    createFolderDescription: "The folder will be created at the vault root. Navigation sections do not become real paths.",
+    folderName: "Folder name",
+    folderNamePlaceholder: "For example: New project",
+    createFolder: "Create folder",
+    invalidFolderName: "Folder names cannot contain path separators or reserved system characters",
+    duplicateRootItem: "An item with that name already exists at the vault root",
+    folderCreated: "Folder created: {path}",
+  },
 };
 
 function createId(prefix = "section") {
@@ -50,6 +233,7 @@ class NameModal extends Modal {
 
   onOpen() {
     const { contentEl } = this;
+    const t = this.options.t;
     contentEl.addClass("notion-navigation-modal");
     contentEl.createEl("h2", { text: this.options.title });
     if (this.options.description) {
@@ -60,7 +244,7 @@ class NameModal extends Modal {
     }
 
     let value = this.options.initialValue || "";
-    const setting = new Setting(contentEl).setName(this.options.label || "名称");
+    const setting = new Setting(contentEl).setName(this.options.label || t("name"));
     setting.addText((text) => {
       text.setValue(value).setPlaceholder(this.options.placeholder || "");
       text.onChange((next) => (value = next));
@@ -74,15 +258,15 @@ class NameModal extends Modal {
     });
 
     const actions = contentEl.createDiv({ cls: "notion-navigation-modal-actions" });
-    const cancel = actions.createEl("button", { text: "取消" });
+    const cancel = actions.createEl("button", { text: t("cancel") });
     cancel.addEventListener("click", () => this.close());
-    const confirm = actions.createEl("button", { cls: "mod-cta", text: this.options.confirmText || "保存" });
+    const confirm = actions.createEl("button", { cls: "mod-cta", text: this.options.confirmText || t("save") });
     confirm.addEventListener("click", () => void submit());
 
     const submit = async () => {
       const trimmed = value.trim();
       if (!trimmed) {
-        new Notice("名称不能为空");
+        new Notice(t("nameRequired"));
         return;
       }
       const accepted = await this.options.onSubmit(trimmed);
@@ -103,6 +287,7 @@ class ConfirmModal extends Modal {
 
   onOpen() {
     const { contentEl } = this;
+    const t = this.options.t;
     contentEl.addClass("notion-navigation-modal");
     contentEl.createEl("h2", { text: this.options.title });
     contentEl.createEl("p", {
@@ -110,9 +295,9 @@ class ConfirmModal extends Modal {
       text: this.options.description,
     });
     const actions = contentEl.createDiv({ cls: "notion-navigation-modal-actions" });
-    actions.createEl("button", { text: "取消" }).addEventListener("click", () => this.close());
+    actions.createEl("button", { text: t("cancel") }).addEventListener("click", () => this.close());
     actions
-      .createEl("button", { cls: "mod-warning", text: this.options.confirmText || "确认" })
+      .createEl("button", { cls: "mod-warning", text: this.options.confirmText || t("confirm") })
       .addEventListener("click", async () => {
         await this.options.onConfirm();
         this.close();
@@ -129,7 +314,7 @@ class VaultItemSuggestModal extends FuzzySuggestModal {
     super(app);
     this.plugin = plugin;
     this.sectionId = sectionId;
-    this.setPlaceholder("搜索要加入导航的文件夹或笔记…");
+    this.setPlaceholder(this.plugin.t("searchAdd"));
   }
 
   getItems() {
@@ -144,7 +329,7 @@ class VaultItemSuggestModal extends FuzzySuggestModal {
       .sort((left, right) => {
         if (left instanceof TFolder && right instanceof TFile) return -1;
         if (left instanceof TFile && right instanceof TFolder) return 1;
-        return left.path.localeCompare(right.path, "zh-CN", { numeric: true });
+        return left.path.localeCompare(right.path, this.plugin.getSortLocale(), { numeric: true });
       });
   }
 
@@ -168,7 +353,7 @@ class NotionNavigationView extends ItemView {
   }
 
   getDisplayText() {
-    return "导航";
+    return this.plugin.t("navigation");
   }
 
   getIcon() {
@@ -193,14 +378,14 @@ class NotionNavigationView extends ItemView {
     const title = toolbar.createDiv({ cls: "notion-navigation-title" });
     const mark = title.createSpan({ cls: "notion-navigation-mark" });
     setIcon(mark, "panel-left");
-    title.createSpan({ text: "导航" });
+    title.createSpan({ text: this.plugin.t("navigation") });
 
     const toolbarActions = toolbar.createDiv({ cls: "notion-navigation-toolbar-actions" });
-    this.createIconButton(toolbarActions, "plus", "新建一级分区", (event) => {
+    this.createIconButton(toolbarActions, "plus", this.plugin.t("newSection"), (event) => {
       event.stopPropagation();
       this.plugin.promptCreateSection();
     });
-    this.createIconButton(toolbarActions, "settings", "导航设置", () => {
+    this.createIconButton(toolbarActions, "settings", this.plugin.t("navigationSettings"), () => {
       this.app.setting.open();
       this.app.setting.openTabById(this.plugin.manifest.id);
     });
@@ -237,11 +422,11 @@ class NotionNavigationView extends ItemView {
     header.createSpan({ cls: "notion-navigation-row-label", text: section.name });
 
     const actions = header.createDiv({ cls: "notion-navigation-row-actions" });
-    this.createIconButton(actions, "plus", `在“${section.name}”中添加`, (event) => {
+    this.createIconButton(actions, "plus", this.plugin.t("addToSection", { name: section.name }), (event) => {
       event.stopPropagation();
       this.openAddMenu(section, event);
     });
-    this.createIconButton(actions, "more-horizontal", `编辑“${section.name}”`, (event) => {
+    this.createIconButton(actions, "more-horizontal", this.plugin.t("editSection", { name: section.name }), (event) => {
       event.stopPropagation();
       this.openSectionMenu(section, event);
     });
@@ -271,7 +456,7 @@ class NotionNavigationView extends ItemView {
     if (!validItems.length) {
       const empty = body.createEl("button", {
         cls: "notion-navigation-empty",
-        text: "添加文件夹或笔记",
+        text: this.plugin.t("addFolderOrNote"),
         attr: { type: "button" },
       });
       empty.addEventListener("click", (event) => this.openAddMenu(section, event));
@@ -292,7 +477,7 @@ class NotionNavigationView extends ItemView {
     setIcon(icon, "file-question");
     row.createSpan({ cls: "notion-navigation-row-label", text: path });
     const actions = row.createDiv({ cls: "notion-navigation-row-actions" });
-    this.createIconButton(actions, "x", "移除失效项目", () => {
+    this.createIconButton(actions, "x", this.plugin.t("removeMissingItem"), () => {
       void this.plugin.removeItemFromSection(section.id, path);
     });
   }
@@ -311,7 +496,7 @@ class NotionNavigationView extends ItemView {
       attr: {
         role: "button",
         tabindex: "0",
-        "aria-label": `${isFolder ? "文件夹" : "笔记"}: ${item.path}`,
+        "aria-label": `${this.plugin.t(isFolder ? "folder" : "note")}: ${item.path}`,
         "aria-expanded": isFolder ? String(isExpanded) : null,
       },
     });
@@ -331,7 +516,7 @@ class NotionNavigationView extends ItemView {
 
     if (pinnedRoot) {
       const actions = row.createDiv({ cls: "notion-navigation-row-actions" });
-      this.createIconButton(actions, "more-horizontal", `管理 ${item.name}`, (event) => {
+      this.createIconButton(actions, "more-horizontal", this.plugin.t("manageItem", { name: item.name }), (event) => {
         event.stopPropagation();
         this.openItemMenu(section, item, event);
       });
@@ -368,7 +553,7 @@ class NotionNavigationView extends ItemView {
     return [...folder.children].sort((left, right) => {
       if (left instanceof TFolder && right instanceof TFile) return -1;
       if (left instanceof TFile && right instanceof TFolder) return 1;
-      return left.name.localeCompare(right.name, "zh-CN", { numeric: true });
+      return left.name.localeCompare(right.name, this.plugin.getSortLocale(), { numeric: true });
     });
   }
 
@@ -397,17 +582,17 @@ class NotionNavigationView extends ItemView {
   openAddMenu(section, event) {
     const menu = new Menu();
     menu.addItem((item) =>
-      item.setTitle("新建文件夹").setIcon("folder-plus").onClick(() => this.plugin.promptCreateFolder(section.id))
+      item.setTitle(this.plugin.t("newFolder")).setIcon("folder-plus").onClick(() => this.plugin.promptCreateFolder(section.id))
     );
     menu.addItem((item) =>
-      item.setTitle("添加已有文件夹或笔记").setIcon("list-plus").onClick(() => {
+      item.setTitle(this.plugin.t("addExistingFolderOrNote")).setIcon("list-plus").onClick(() => {
         new VaultItemSuggestModal(this.app, this.plugin, section.id).open();
       })
     );
     const active = this.app.workspace.getActiveFile();
     if (active && !(section.items || []).includes(active.path)) {
       menu.addItem((item) =>
-        item.setTitle("添加当前笔记").setIcon("file-plus").onClick(() => {
+        item.setTitle(this.plugin.t("addCurrentNote")).setIcon("file-plus").onClick(() => {
           void this.plugin.addItemToSection(section.id, active.path);
         })
       );
@@ -419,34 +604,34 @@ class NotionNavigationView extends ItemView {
     const index = this.plugin.settings.sections.findIndex((candidate) => candidate.id === section.id);
     const menu = new Menu();
     menu.addItem((item) =>
-      item.setTitle("新建文件夹").setIcon("folder-plus").onClick(() => this.plugin.promptCreateFolder(section.id))
+      item.setTitle(this.plugin.t("newFolder")).setIcon("folder-plus").onClick(() => this.plugin.promptCreateFolder(section.id))
     );
     menu.addItem((item) =>
-      item.setTitle("添加已有项目").setIcon("list-plus").onClick(() => {
+      item.setTitle(this.plugin.t("addExistingItem")).setIcon("list-plus").onClick(() => {
         new VaultItemSuggestModal(this.app, this.plugin, section.id).open();
       })
     );
     menu.addSeparator();
     menu.addItem((item) =>
-      item.setTitle("重命名分区").setIcon("pencil").onClick(() => this.plugin.promptRenameSection(section.id))
+      item.setTitle(this.plugin.t("renameSection")).setIcon("pencil").onClick(() => this.plugin.promptRenameSection(section.id))
     );
     menu.addItem((item) =>
       item
-        .setTitle("上移")
+        .setTitle(this.plugin.t("moveUp"))
         .setIcon("arrow-up")
         .setDisabled(index <= 0)
         .onClick(() => void this.plugin.moveSection(section.id, -1))
     );
     menu.addItem((item) =>
       item
-        .setTitle("下移")
+        .setTitle(this.plugin.t("moveDown"))
         .setIcon("arrow-down")
         .setDisabled(index >= this.plugin.settings.sections.length - 1)
         .onClick(() => void this.plugin.moveSection(section.id, 1))
     );
     menu.addSeparator();
     menu.addItem((item) =>
-      item.setTitle("删除分区").setIcon("trash-2").onClick(() => this.plugin.confirmDeleteSection(section.id))
+      item.setTitle(this.plugin.t("deleteSection")).setIcon("trash-2").onClick(() => this.plugin.confirmDeleteSection(section.id))
     );
     menu.showAtMouseEvent(event);
   }
@@ -470,14 +655,14 @@ class NotionNavigationView extends ItemView {
       menu.addItem((entry) =>
         entry
           .setSection("open")
-          .setTitle("在新标签页中打开")
+          .setTitle(this.plugin.t("openInNewTab"))
           .setIcon("file-plus")
           .onClick(() => void this.app.workspace.openLinkText(item.path, "", "tab"))
       );
       menu.addItem((entry) =>
         entry
           .setSection("open")
-          .setTitle("在新标签组中打开")
+          .setTitle(this.plugin.t("openInNewPane"))
           .setIcon("separator-vertical")
           .onClick(() => void this.app.workspace.openLinkText(item.path, "", "split"))
       );
@@ -485,14 +670,14 @@ class NotionNavigationView extends ItemView {
       menu.addItem((entry) =>
         entry
           .setSection("action-primary")
-          .setTitle("新建笔记")
+          .setTitle(this.plugin.t("newNote"))
           .setIcon("edit")
           .onClick(() => void this.createNoteInFolder(item))
       );
       menu.addItem((entry) =>
         entry
           .setSection("action-primary")
-          .setTitle("新建文件夹")
+          .setTitle(this.plugin.t("newFolder"))
           .setIcon("folder-open")
           .onClick(() => void this.createFolderInFolder(item))
       );
@@ -501,19 +686,19 @@ class NotionNavigationView extends ItemView {
     menu.addItem((entry) =>
       entry
         .setSection("action")
-        .setTitle("创建副本")
+        .setTitle(this.plugin.t("duplicate"))
         .setIcon("files")
         .onClick(() => void this.duplicateVaultItem(item))
     );
     menu.addItem((entry) =>
       entry
         .setSection("danger")
-        .setTitle("重命名")
+        .setTitle(this.plugin.t("rename"))
         .setIcon("edit-3")
         .onClick(() => void this.app.fileManager.promptForFileRename(item))
     );
     menu.addItem((entry) => {
-      entry.setSection("danger").setTitle("删除").setIcon("trash-2").onClick(() => {
+      entry.setSection("danger").setTitle(this.plugin.t("delete")).setIcon("trash-2").onClick(() => {
         void this.app.fileManager.promptForDeletion(item);
       });
       entry.setWarning?.(true);
@@ -536,7 +721,7 @@ class NotionNavigationView extends ItemView {
         eState: { rename: "all" },
       });
     } catch (error) {
-      new Notice(`无法新建笔记：${error.message || error}`);
+      new Notice(this.plugin.t("cannotCreateNote", { error: error.message || error }));
     }
   }
 
@@ -545,7 +730,7 @@ class NotionNavigationView extends ItemView {
       const created = await this.app.fileManager.createNewFolder(folder);
       if (created) this.app.fileManager.promptForFileRename(created);
     } catch (error) {
-      new Notice(`无法新建文件夹：${error.message || error}`);
+      new Notice(this.plugin.t("cannotCreateFolder", { error: error.message || error }));
     }
   }
 
@@ -556,9 +741,9 @@ class NotionNavigationView extends ItemView {
           ? this.app.vault.getAvailablePath(item.path.slice(0, -(item.extension.length + 1)), item.extension)
           : this.app.vault.getAvailablePath(item.path);
       const copy = await this.app.vault.copy(item, path);
-      if (copy instanceof TFile) new Notice(`已创建副本：${copy.path}`);
+      if (copy instanceof TFile) new Notice(this.plugin.t("copyCreated", { path: copy.path }));
     } catch (error) {
-      new Notice(`无法创建副本：${error.message || error}`);
+      new Notice(this.plugin.t("cannotCreateCopy", { error: error.message || error }));
     }
   }
 
@@ -567,7 +752,7 @@ class NotionNavigationView extends ItemView {
     const index = (section.items || []).indexOf(path);
     menu.addSections?.(["notion-navigation"]);
     menu.setSectionSubmenu?.("notion-navigation", {
-      title: "导航管理",
+      title: this.plugin.t("navigationManagement"),
       icon: "panel-left",
     });
 
@@ -576,7 +761,7 @@ class NotionNavigationView extends ItemView {
       menu.addItem((entry) => {
         inNavigationSection(entry);
         return entry
-          .setTitle(this.plugin.isFolderExpanded(path) ? "收起文件夹" : "展开文件夹")
+          .setTitle(this.plugin.t(this.plugin.isFolderExpanded(path) ? "collapseFolder" : "expandFolder"))
           .setIcon(this.plugin.isFolderExpanded(path) ? "folder-closed" : "folder-open")
           .onClick(() => void this.plugin.toggleFolder(path));
       });
@@ -586,7 +771,7 @@ class NotionNavigationView extends ItemView {
       menu.addItem((entry) => {
         inNavigationSection(entry);
         return entry
-          .setTitle("上移")
+          .setTitle(this.plugin.t("moveUp"))
           .setIcon("arrow-up")
           .setDisabled(index <= 0)
           .onClick(() => void this.plugin.moveItem(section.id, path, -1));
@@ -594,7 +779,7 @@ class NotionNavigationView extends ItemView {
       menu.addItem((entry) => {
         inNavigationSection(entry);
         return entry
-          .setTitle("下移")
+          .setTitle(this.plugin.t("moveDown"))
           .setIcon("arrow-down")
           .setDisabled(index >= section.items.length - 1)
           .onClick(() => void this.plugin.moveItem(section.id, path, 1));
@@ -602,14 +787,14 @@ class NotionNavigationView extends ItemView {
       for (const target of this.plugin.settings.sections.filter((candidate) => candidate.id !== section.id)) {
         menu.addItem((entry) => {
           inNavigationSection(entry);
-          return entry.setTitle(`移到“${target.name}”`).setIcon(target.icon || "folder").onClick(() => {
+          return entry.setTitle(this.plugin.t("moveToSection", { name: target.name })).setIcon(target.icon || "folder").onClick(() => {
             void this.plugin.moveItemToSection(section.id, target.id, path);
           });
         });
       }
       menu.addItem((entry) => {
         inNavigationSection(entry);
-        return entry.setTitle("从导航移除").setIcon("x").onClick(() => {
+        return entry.setTitle(this.plugin.t("removeFromNavigation")).setIcon("x").onClick(() => {
           void this.plugin.removeItemFromSection(section.id, path);
         });
       });
@@ -628,12 +813,27 @@ class NotionNavigationSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h2", { text: "Sidebar Navigation" });
     containerEl.createEl("p", {
-      text: "一级分区只属于导航，不改变真实文件路径。二级项目始终指向仓库中的真实文件夹或笔记。",
+      text: this.plugin.t("settingsIntro"),
     });
 
     new Setting(containerEl)
-      .setName("启动时打开导航")
-      .setDesc("在左侧栏创建并显示导航标签，同时保留原生文件列表。")
+      .setName(this.plugin.t("language"))
+      .setDesc(this.plugin.t("languageDesc"))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("auto", this.plugin.t("followObsidian"))
+          .addOption("zh", this.plugin.t("simplifiedChinese"))
+          .addOption("en", this.plugin.t("english"))
+          .setValue(this.plugin.settings.language)
+          .onChange(async (value) => {
+            await this.plugin.setLanguage(value);
+            this.display();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(this.plugin.t("openAtStartup"))
+      .setDesc(this.plugin.t("openAtStartupDesc"))
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.autoOpen).onChange(async (value) => {
           this.plugin.settings.autoOpen = value;
@@ -641,14 +841,17 @@ class NotionNavigationSettingTab extends PluginSettingTab {
         })
       );
 
-    containerEl.createEl("h3", { text: "一级分区" });
+    containerEl.createEl("h3", { text: this.plugin.t("topLevelSections") });
     for (const section of this.plugin.settings.sections) {
       const index = this.plugin.settings.sections.indexOf(section);
+      const itemCount = (section.items || []).length;
       const setting = new Setting(containerEl)
         .setName(section.name)
-        .setDesc(`${(section.items || []).length} 个导航项目`);
+        .setDesc(this.plugin.t(itemCount === 1 ? "navigationItemCountOne" : "navigationItemCountOther", {
+          count: itemCount,
+        }));
       setting.addText((text) =>
-        text.setValue(section.name).setPlaceholder("分区名称").onChange(async (value) => {
+        text.setValue(section.name).setPlaceholder(this.plugin.t("sectionName")).onChange(async (value) => {
           const trimmed = value.trim();
           if (!trimmed) return;
           section.name = trimmed;
@@ -656,7 +859,9 @@ class NotionNavigationSettingTab extends PluginSettingTab {
         })
       );
       setting.addDropdown((dropdown) => {
-        for (const [value, label] of Object.entries(ICON_CHOICES)) dropdown.addOption(value, label);
+        for (const [value, labelKey] of Object.entries(ICON_CHOICES)) {
+          dropdown.addOption(value, this.plugin.t(labelKey));
+        }
         dropdown.setValue(section.icon || "folder").onChange(async (value) => {
           section.icon = value;
           await this.plugin.persist();
@@ -665,7 +870,7 @@ class NotionNavigationSettingTab extends PluginSettingTab {
       setting.addExtraButton((button) =>
         button
           .setIcon("arrow-up")
-          .setTooltip("上移")
+          .setTooltip(this.plugin.t("moveUp"))
           .setDisabled(index === 0)
           .onClick(async () => {
             await this.plugin.moveSection(section.id, -1);
@@ -675,7 +880,7 @@ class NotionNavigationSettingTab extends PluginSettingTab {
       setting.addExtraButton((button) =>
         button
           .setIcon("arrow-down")
-          .setTooltip("下移")
+          .setTooltip(this.plugin.t("moveDown"))
           .setDisabled(index === this.plugin.settings.sections.length - 1)
           .onClick(async () => {
             await this.plugin.moveSection(section.id, 1);
@@ -683,17 +888,17 @@ class NotionNavigationSettingTab extends PluginSettingTab {
           })
       );
       setting.addExtraButton((button) =>
-        button.setIcon("trash-2").setTooltip("删除分区").onClick(() => {
+        button.setIcon("trash-2").setTooltip(this.plugin.t("deleteSection")).onClick(() => {
           this.plugin.confirmDeleteSection(section.id, () => this.display());
         })
       );
     }
 
     new Setting(containerEl)
-      .setName("添加一级分区")
-      .setDesc("分区名称和图标之后都可以修改。")
+      .setName(this.plugin.t("addTopLevelSection"))
+      .setDesc(this.plugin.t("addTopLevelSectionDesc"))
       .addButton((button) =>
-        button.setButtonText("添加分区").setCta().onClick(() => {
+        button.setButtonText(this.plugin.t("addSection")).setCta().onClick(() => {
           this.plugin.promptCreateSection(() => this.display());
         })
       );
@@ -704,22 +909,23 @@ module.exports = class NotionNavigationPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     this.registerView(VIEW_TYPE, (leaf) => new NotionNavigationView(leaf, this));
-    this.addSettingTab(new NotionNavigationSettingTab(this.app, this));
+    this.settingTab = new NotionNavigationSettingTab(this.app, this);
+    this.addSettingTab(this.settingTab);
 
-    this.addRibbonIcon("panel-left", "打开侧边栏导航", () => void this.activateView());
-    this.addCommand({
+    this.ribbonIcon = this.addRibbonIcon("panel-left", this.t("openSidebarNavigation"), () =>
+      void this.activateView()
+    );
+    this.localizedCommands = [];
+    this.registerLocalizedCommand("openNavigation", {
       id: "open-navigation",
-      name: "打开导航",
       callback: () => void this.activateView(),
     });
-    this.addCommand({
+    this.registerLocalizedCommand("addTopLevelSection", {
       id: "add-section",
-      name: "添加一级分区",
       callback: () => this.promptCreateSection(),
     });
-    this.addCommand({
+    this.registerLocalizedCommand("addCurrentNoteToNavigation", {
       id: "add-active-file",
-      name: "把当前笔记加入导航",
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;
@@ -748,61 +954,95 @@ module.exports = class NotionNavigationPlugin extends Plugin {
 
   async loadSettings() {
     const stored = await this.loadData();
+    const language = LANGUAGE_OPTIONS.has(stored?.language) ? stored.language : "auto";
     if (stored?.sections?.length) {
       this.settings = {
+        language,
         autoOpen: stored.autoOpen !== false,
         expandedFolders: uniquePaths(stored.expandedFolders || []),
         sections: stored.sections.map((section) => ({
           id: section.id || createId(),
-          name: section.name || "未命名",
+          name: section.name || this.translate(this.resolveLanguage(language), "unnamed"),
           icon: section.icon || "folder",
           collapsed: Boolean(section.collapsed),
           items: uniquePaths(section.items || []),
         })),
       };
     } else {
-      this.settings = this.createDefaultSettings();
+      this.settings = this.createDefaultSettings(language);
       await this.saveData(this.settings);
     }
     this.expandedFolders = new Set(this.settings.expandedFolders || []);
   }
 
-  createDefaultSettings() {
+  createDefaultSettings(language = "auto") {
     const root = this.app.vault.getRoot();
     const privateFolders = root.children
       .filter((item) => item instanceof TFolder)
       .filter((folder) => !folder.name.startsWith("_"))
       .map((folder) => folder.path)
-      .sort((left, right) => left.localeCompare(right, "zh-CN", { numeric: true }));
+      .sort((left, right) => left.localeCompare(right, this.getSortLocale(language), { numeric: true }));
 
     return {
+      language,
       autoOpen: true,
       expandedFolders: [],
-      sections: [
-        {
-          id: createId(),
-          name: "最爱",
-          icon: DEFAULT_SECTION_ICONS.最爱,
-          collapsed: false,
-          items: [],
-        },
-        { id: createId(), name: "共享", icon: DEFAULT_SECTION_ICONS.共享, collapsed: false, items: [] },
-        {
-          id: createId(),
-          name: "私人",
-          icon: DEFAULT_SECTION_ICONS.私人,
-          collapsed: false,
-          items: privateFolders,
-        },
-        {
-          id: createId(),
-          name: "其他",
-          icon: DEFAULT_SECTION_ICONS.其他,
-          collapsed: false,
-          items: [],
-        },
-      ],
+      sections: DEFAULT_SECTIONS.map((section) => ({
+        id: createId(),
+        name: this.translate(this.resolveLanguage(language), section.key),
+        icon: section.icon,
+        collapsed: false,
+        items: section.includeRootFolders ? privateFolders : [],
+      })),
     };
+  }
+
+  resolveLanguage(mode = this.settings?.language || "auto") {
+    if (mode === "zh" || mode === "en") return mode;
+    const appLanguage =
+      (typeof getLanguage === "function" && getLanguage()) ||
+      document.documentElement.lang ||
+      navigator.language ||
+      "en";
+    return String(appLanguage).toLowerCase().startsWith("zh") ? "zh" : "en";
+  }
+
+  translate(language, key, variables = {}) {
+    const template = TRANSLATIONS[language]?.[key] || TRANSLATIONS.en[key] || key;
+    return template.replace(/\{(\w+)\}/g, (match, name) =>
+      Object.prototype.hasOwnProperty.call(variables, name) ? String(variables[name]) : match
+    );
+  }
+
+  t(key, variables = {}) {
+    return this.translate(this.resolveLanguage(), key, variables);
+  }
+
+  getSortLocale(mode = this.settings?.language || "auto") {
+    return this.resolveLanguage(mode) === "zh" ? "zh-CN" : "en";
+  }
+
+  registerLocalizedCommand(nameKey, command) {
+    const localized = { ...command, name: this.t(nameKey) };
+    const registered = this.addCommand(localized) || localized;
+    this.localizedCommands.push({ command: registered, nameKey });
+  }
+
+  refreshLocalizedChrome() {
+    const ribbonLabel = this.t("openSidebarNavigation");
+    this.ribbonIcon?.setAttribute("aria-label", ribbonLabel);
+    for (const entry of this.localizedCommands || []) {
+      entry.command.name = this.t(entry.nameKey);
+    }
+    this.navigationView?.leaf.updateHeader?.();
+    this.refreshView();
+  }
+
+  async setLanguage(language) {
+    if (!LANGUAGE_OPTIONS.has(language)) return;
+    this.settings.language = language;
+    await this.persist();
+    this.refreshLocalizedChrome();
   }
 
   async persist() {
@@ -830,7 +1070,7 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     if (!leaf) {
       leaf = this.app.workspace.getLeftLeaf(false);
       if (!leaf) {
-        new Notice("无法创建左侧导航标签");
+        new Notice(this.t("cannotCreateSidebar"));
         return;
       }
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
@@ -844,10 +1084,11 @@ module.exports = class NotionNavigationPlugin extends Plugin {
 
   promptCreateSection(afterCreate) {
     new NameModal(this.app, {
-      title: "新建一级分区",
-      label: "分区名称",
-      placeholder: "例如：学习、工作、归档",
-      confirmText: "创建",
+      t: (key, variables) => this.t(key, variables),
+      title: this.t("createSectionTitle"),
+      label: this.t("sectionName"),
+      placeholder: this.t("sectionNamePlaceholder"),
+      confirmText: this.t("create"),
       onSubmit: async (name) => {
         this.settings.sections.push({
           id: createId(),
@@ -866,10 +1107,11 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     const section = this.getSection(sectionId);
     if (!section) return;
     new NameModal(this.app, {
-      title: "重命名一级分区",
-      label: "分区名称",
+      t: (key, variables) => this.t(key, variables),
+      title: this.t("renameSectionTitle"),
+      label: this.t("sectionName"),
       initialValue: section.name,
-      confirmText: "重命名",
+      confirmText: this.t("rename"),
       onSubmit: async (name) => {
         section.name = name;
         await this.persist();
@@ -881,9 +1123,10 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     const section = this.getSection(sectionId);
     if (!section) return;
     new ConfirmModal(this.app, {
-      title: `删除“${section.name}”？`,
-      description: "只会删除导航分区及其中的固定项，不会删除或移动任何真实文件。",
-      confirmText: "删除分区",
+      t: (key, variables) => this.t(key, variables),
+      title: this.t("deleteSectionTitle", { name: section.name }),
+      description: this.t("deleteSectionDescription"),
+      confirmText: this.t("deleteSection"),
       onConfirm: async () => {
         this.settings.sections = this.settings.sections.filter((candidate) => candidate.id !== sectionId);
         await this.persist();
@@ -913,24 +1156,25 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     const section = this.getSection(sectionId);
     if (!section) return;
     new NameModal(this.app, {
-      title: `在“${section.name}”中新建文件夹`,
-      description: "文件夹会创建在 Obsidian 仓库根目录；导航分区本身不会成为真实路径。",
-      label: "文件夹名称",
-      placeholder: "例如：新项目",
-      confirmText: "创建文件夹",
+      t: (key, variables) => this.t(key, variables),
+      title: this.t("createFolderInSectionTitle", { name: section.name }),
+      description: this.t("createFolderDescription"),
+      label: this.t("folderName"),
+      placeholder: this.t("folderNamePlaceholder"),
+      confirmText: this.t("createFolder"),
       onSubmit: async (name) => {
         if (/[\\/:*?"<>|]/.test(name)) {
-          new Notice("文件夹名称不能包含路径或系统保留字符");
+          new Notice(this.t("invalidFolderName"));
           return false;
         }
         const path = normalizePath(name);
         if (this.app.vault.getAbstractFileByPath(path)) {
-          new Notice("仓库根目录中已存在同名项目");
+          new Notice(this.t("duplicateRootItem"));
           return false;
         }
         await this.app.vault.createFolder(path);
         await this.addItemToSection(sectionId, path);
-        new Notice(`已创建文件夹：${path}`);
+        new Notice(this.t("folderCreated", { path }));
         return true;
       },
     }).open();

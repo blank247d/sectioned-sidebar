@@ -1,7 +1,7 @@
 {
   "id": "notion-navigation",
   "name": "Sidebar Navigation",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "minAppVersion": "1.8.0",
   "description": "Custom sidebar sections backed by real Obsidian folders and notes.",
   "author": "Local",

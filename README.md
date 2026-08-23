@@ -13,6 +13,7 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 ## Features
 
 - Create, rename, reorder, collapse, and remove virtual sidebar sections.
+- Follow Obsidian's interface language or switch the plugin manually between Simplified Chinese and English.
 - Pin existing notes and folders without changing their real vault paths.
 - Expand ordinary folders and browse their descendants in place.
 - Reuse Obsidian's file-menu extension system for familiar file and folder actions.
@@ -27,6 +28,8 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 3. Enable **Sidebar Navigation**.
 
 The internal plugin ID remains `notion-navigation` for compatibility with existing installations and saved settings. The displayed plugin name is **Sidebar Navigation**.
+
+Under **Settings → Sidebar Navigation → Language**, choose **Follow Obsidian**, **简体中文**, or **English**. Changing the interface language does not rename existing custom sections.
 
 ## Data model
 

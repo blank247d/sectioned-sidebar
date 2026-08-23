@@ -4,6 +4,7 @@
   "version": "1.1.0",
   "minAppVersion": "1.8.0",
   "description": "Custom sidebar sections backed by real Obsidian folders and notes.",
-  "author": "Local",
+  "author": "ld000",
+  "authorUrl": "https://github.com/ld000",
   "isDesktopOnly": false
 }

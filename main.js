@@ -361,12 +361,7 @@ class NotionNavigationView extends ItemView {
   }
 
   async onOpen() {
-    this.plugin.navigationView = this;
     this.render();
-  }
-
-  async onClose() {
-    if (this.plugin.navigationView === this) this.plugin.navigationView = null;
   }
 
   render() {
@@ -472,7 +467,7 @@ class NotionNavigationView extends ItemView {
 
   renderMissingItem(parent, section, path) {
     const row = parent.createDiv({ cls: "notion-navigation-row notion-navigation-item is-file is-missing" });
-    row.style.setProperty("--nav-depth", "0");
+    row.setCssProps({ "--nav-depth": "0" });
     const icon = row.createSpan({ cls: "notion-navigation-slot" });
     setIcon(icon, "file-question");
     row.createSpan({ cls: "notion-navigation-row-label", text: path });
@@ -500,7 +495,7 @@ class NotionNavigationView extends ItemView {
         "aria-expanded": isFolder ? String(isExpanded) : null,
       },
     });
-    row.style.setProperty("--nav-depth", String(depth));
+    row.setCssProps({ "--nav-depth": String(depth) });
 
     const presentation = this.presentationForItem(item, isExpanded);
     const disclosure = row.createSpan({ cls: "notion-navigation-slot notion-navigation-disclosure" });
@@ -542,7 +537,7 @@ class NotionNavigationView extends ItemView {
 
     if (isFolder && isExpanded) {
       const children = parent.createDiv({ cls: "notion-navigation-children" });
-      children.style.setProperty("--nav-parent-depth", String(depth));
+      children.setCssProps({ "--nav-parent-depth": String(depth) });
       for (const child of this.sortedChildren(item)) {
         this.renderVaultItem(children, section, child, depth + 1, false);
       }
@@ -811,7 +806,6 @@ class NotionNavigationSettingTab extends PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Sidebar Navigation" });
     containerEl.createEl("p", {
       text: this.plugin.t("settingsIntro"),
     });
@@ -841,7 +835,7 @@ class NotionNavigationSettingTab extends PluginSettingTab {
         })
       );
 
-    containerEl.createEl("h3", { text: this.plugin.t("topLevelSections") });
+    new Setting(containerEl).setName(this.plugin.t("topLevelSections")).setHeading();
     for (const section of this.plugin.settings.sections) {
       const index = this.plugin.settings.sections.indexOf(section);
       const itemCount = (section.items || []).length;
@@ -909,8 +903,7 @@ module.exports = class NotionNavigationPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     this.registerView(VIEW_TYPE, (leaf) => new NotionNavigationView(leaf, this));
-    this.settingTab = new NotionNavigationSettingTab(this.app, this);
-    this.addSettingTab(this.settingTab);
+    this.addSettingTab(new NotionNavigationSettingTab(this.app, this));
 
     this.ribbonIcon = this.addRibbonIcon("panel-left", this.t("openSidebarNavigation"), () =>
       void this.activateView()
@@ -946,10 +939,6 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => {
       if (this.settings.autoOpen) void this.activateView();
     });
-  }
-
-  onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE);
   }
 
   async loadSettings() {
@@ -1034,7 +1023,9 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     for (const entry of this.localizedCommands || []) {
       entry.command.name = this.t(entry.nameKey);
     }
-    this.navigationView?.leaf.updateHeader?.();
+    for (const view of this.getNavigationViews()) {
+      view.leaf.updateHeader?.();
+    }
     this.refreshView();
   }
 
@@ -1052,7 +1043,16 @@ module.exports = class NotionNavigationPlugin extends Plugin {
   }
 
   refreshView() {
-    this.navigationView?.render();
+    for (const view of this.getNavigationViews()) {
+      view.render();
+    }
+  }
+
+  getNavigationViews() {
+    return this.app.workspace
+      .getLeavesOfType(VIEW_TYPE)
+      .map((leaf) => leaf.view)
+      .filter((view) => view instanceof NotionNavigationView);
   }
 
   async activateView() {

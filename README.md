@@ -42,3 +42,7 @@ The plugin is distributed as plain JavaScript and CSS; no build step is required
 ```bash
 node --check main.js
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 ld000

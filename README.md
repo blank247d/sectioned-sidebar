@@ -2,6 +2,14 @@
 
 A customizable Obsidian sidebar that organizes real vault files and folders under virtual top-level sections.
 
+![Sidebar Navigation overview](assets/sidebar-navigation-overview.png)
+
+## Interaction demo
+
+![Expand a folder and open its file-management menu](assets/sidebar-navigation-demo.gif)
+
+The screenshots use fictional sections, folders, and notes; they do not contain data from a real vault.
+
 ## Features
 
 - Create, rename, reorder, collapse, and remove virtual sidebar sections.

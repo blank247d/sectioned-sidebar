@@ -23,11 +23,11 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 
 ## Install
 
-1. Copy this repository into your vault as `.obsidian/plugins/notion-navigation/`.
+1. Copy this repository into your vault as `.obsidian/plugins/sidebar-navigation/`.
 2. In Obsidian, open **Settings → Community plugins**.
 3. Enable **Sidebar Navigation**.
 
-The internal plugin ID remains `notion-navigation` for compatibility with existing installations and saved settings. The displayed plugin name is **Sidebar Navigation**.
+The plugin ID is `sidebar-navigation`. If you tested an earlier pre-release build under `.obsidian/plugins/notion-navigation/`, rename that folder to `sidebar-navigation` while Obsidian is closed. Keep `data.json` in the renamed folder to preserve your navigation settings.
 
 Under **Settings → Sidebar Navigation → Language**, choose **Follow Obsidian**, **简体中文**, or **English**. Changing the interface language does not rename existing custom sections.
 

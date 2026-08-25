@@ -191,7 +191,7 @@ const TRANSLATIONS = {
     addTopLevelSection: "Add top-level section",
     addTopLevelSectionDesc: "You can change the section name and icon later.",
     addSection: "Add section",
-    openSidebarNavigation: "Open Sidebar Navigation",
+    openSidebarNavigation: "Open Sectioned Sidebar",
     openNavigation: "Open navigation",
     addCurrentNoteToNavigation: "Add current note to navigation",
     unnamed: "Untitled",

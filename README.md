@@ -1,12 +1,12 @@
-# Sidebar Navigation
+# Sectioned Sidebar
 
 A customizable Obsidian sidebar that organizes real vault files and folders under virtual top-level sections.
 
-![Sidebar Navigation overview](assets/sidebar-navigation-overview.png)
+![Sectioned Sidebar overview](assets/sidebar-navigation-overview.png)
 
 ## Interaction demo
 
-![Expand a folder in Sidebar Navigation](assets/sidebar-navigation-demo.gif)
+![Expand a folder in Sectioned Sidebar](assets/sidebar-navigation-demo.gif)
 
 Captured from the real Obsidian interface in an isolated demo vault containing only fictional sections, folders, and notes. No personal vault content is shown.
 
@@ -25,11 +25,11 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 
 1. Copy this repository into your vault as `.obsidian/plugins/sidebar-navigation/`.
 2. In Obsidian, open **Settings → Community plugins**.
-3. Enable **Sidebar Navigation**.
+3. Enable **Sectioned Sidebar**.
 
 The plugin ID is `sidebar-navigation`. If you tested an earlier pre-release build under `.obsidian/plugins/notion-navigation/`, rename that folder to `sidebar-navigation` while Obsidian is closed. Keep `data.json` in the renamed folder to preserve your navigation settings.
 
-Under **Settings → Sidebar Navigation → Language**, choose **Follow Obsidian**, **简体中文**, or **English**. Changing the interface language does not rename existing custom sections.
+Under **Settings → Sectioned Sidebar → Language**, choose **Follow Obsidian**, **简体中文**, or **English**. Changing the interface language does not rename existing custom sections.
 
 ## Data model
 

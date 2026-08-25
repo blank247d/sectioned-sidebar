@@ -16,10 +16,11 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 - Follow Obsidian's interface language or switch the plugin manually between Simplified Chinese and English.
 - Pin existing notes and folders without changing their real vault paths.
 - Expand ordinary folders and browse their descendants in place.
+- Show complete file names, including their extensions.
 - Reuse Obsidian's file-menu extension system for familiar file and folder actions.
 - Keep navigation-specific actions in a separate **Navigation management** submenu.
 - Follow Obsidian rename events so pinned paths remain valid.
-- Preserve missing references until you explicitly remove them.
+- Remove matching navigation references when a real note or folder is deleted.
 
 ## Install
 

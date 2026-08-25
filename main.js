@@ -1,6 +1,7 @@
 const {
   FuzzySuggestModal,
   ItemView,
+  Keymap,
   Menu,
   Modal,
   Notice,
@@ -366,6 +367,7 @@ class SectionedSidebarView extends ItemView {
 
   render() {
     const { contentEl } = this;
+    const previousScrollTop = contentEl.querySelector(".sectioned-sidebar-sections")?.scrollTop || 0;
     contentEl.empty();
     contentEl.addClass("sectioned-sidebar-view");
 
@@ -389,14 +391,16 @@ class SectionedSidebarView extends ItemView {
     for (const section of this.plugin.settings.sections) {
       this.renderSection(sectionsEl, section);
     }
+    sectionsEl.scrollTop = previousScrollTop;
   }
 
   createIconButton(parent, icon, label, callback) {
     const button = parent.createEl("button", {
       cls: "sectioned-sidebar-icon-button clickable-icon",
-      attr: { "aria-label": label, type: "button" },
+      attr: { type: "button" },
     });
     setIcon(button, icon);
+    button.createSpan({ cls: "sectioned-sidebar-sr-only", text: label });
     button.addEventListener("click", callback);
     return button;
   }
@@ -491,7 +495,6 @@ class SectionedSidebarView extends ItemView {
       attr: {
         role: "button",
         tabindex: "0",
-        "aria-label": `${this.plugin.t(isFolder ? "folder" : "note")}: ${item.path}`,
         "aria-expanded": isFolder ? String(isExpanded) : null,
       },
     });
@@ -517,17 +520,17 @@ class SectionedSidebarView extends ItemView {
       });
     }
 
-    const activate = () => {
+    const activate = (event) => {
       if (isFolder) void this.plugin.toggleFolder(item.path);
-      else void this.app.workspace.getLeaf(false).openFile(item);
+      else void this.app.workspace.openLinkText(item.path, "", event ? Keymap.isModEvent(event) : false);
     };
     row.addEventListener("click", (event) => {
-      if (!event.target.closest("button")) activate();
+      if (!event.target.closest("button")) activate(event);
     });
     row.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        activate();
+        activate(event);
       }
     });
     row.addEventListener("contextmenu", (event) => {
@@ -553,7 +556,7 @@ class SectionedSidebarView extends ItemView {
   }
 
   labelForItem(item) {
-    return item instanceof TFile ? item.basename : item.name;
+    return item.name;
   }
 
   presentationForItem(item, expanded) {
@@ -929,7 +932,11 @@ module.exports = class SectionedSidebarPlugin extends Plugin {
 
     this.registerEvent(this.app.workspace.on("file-open", () => this.refreshView()));
     this.registerEvent(this.app.vault.on("create", () => this.refreshView()));
-    this.registerEvent(this.app.vault.on("delete", () => this.refreshView()));
+    this.registerEvent(
+      this.app.vault.on("delete", (item) => {
+        void this.handleDelete(item.path);
+      })
+    );
     this.registerEvent(
       this.app.vault.on("rename", (item, oldPath) => {
         void this.handleRename(item.path, oldPath);
@@ -1265,6 +1272,24 @@ module.exports = class SectionedSidebarPlugin extends Plugin {
       } else expanded.add(path);
     }
     this.expandedFolders = expanded;
+    if (changed) await this.persist();
+    else this.refreshView();
+  }
+
+  async handleDelete(deletedPath) {
+    const isDeletedPath = (path) => path === deletedPath || path.startsWith(`${deletedPath}/`);
+    let changed = false;
+
+    for (const section of this.settings.sections) {
+      const items = section.items || [];
+      section.items = items.filter((path) => !isDeletedPath(path));
+      if (section.items.length !== items.length) changed = true;
+    }
+
+    const expanded = new Set([...this.expandedFolders].filter((path) => !isDeletedPath(path)));
+    if (expanded.size !== this.expandedFolders.size) changed = true;
+    this.expandedFolders = expanded;
+
     if (changed) await this.persist();
     else this.refreshView();
   }

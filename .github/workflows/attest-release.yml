@@ -1,0 +1,54 @@
+name: Attest release assets
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to attest, such as 1.1.6
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Download release assets
+        run: |
+          mkdir -p release-assets
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern main.js \
+            --pattern manifest.json \
+            --pattern styles.css \
+            --dir release-assets
+
+      - name: Verify assets match the release tag
+        run: |
+          cmp main.js release-assets/main.js
+          cmp manifest.json release-assets/manifest.json
+          cmp styles.css release-assets/styles.css
+
+      - name: Generate build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            release-assets/main.js
+            release-assets/manifest.json
+            release-assets/styles.css

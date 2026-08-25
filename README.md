@@ -44,6 +44,18 @@ The plugin is distributed as plain JavaScript and CSS; no build step is required
 node --check main.js
 ```
 
+## Release provenance
+
+GitHub Actions generates signed build-provenance attestations for `main.js`, `manifest.json`, and `styles.css` after each GitHub Release is published. Before signing, the workflow verifies that every downloaded release asset exactly matches the corresponding file in the release tag.
+
+Verify a downloaded asset with GitHub CLI:
+
+```bash
+gh attestation verify main.js --repo blank247d/sectioned-sidebar
+```
+
+To backfill an existing release, run **Attest release assets** from the Actions tab and provide its tag.
+
 ## License
 
 [MIT](LICENSE) © 2026 blank247d

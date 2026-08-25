@@ -14,7 +14,7 @@ const {
   setIcon,
 } = require("obsidian");
 
-const VIEW_TYPE = "notion-navigation-view";
+const VIEW_TYPE = "sectioned-sidebar-view";
 const LEADING_EMOJI_RE = /^((?:\p{Regional_Indicator}{2}|\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?)*)\s*/u;
 const LANGUAGE_OPTIONS = new Set(["auto", "zh", "en"]);
 const DEFAULT_SECTIONS = [
@@ -234,11 +234,11 @@ class NameModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     const t = this.options.t;
-    contentEl.addClass("notion-navigation-modal");
+    contentEl.addClass("sectioned-sidebar-modal");
     contentEl.createEl("h2", { text: this.options.title });
     if (this.options.description) {
       contentEl.createEl("p", {
-        cls: "notion-navigation-modal-description",
+        cls: "sectioned-sidebar-modal-description",
         text: this.options.description,
       });
     }
@@ -257,7 +257,7 @@ class NameModal extends Modal {
       });
     });
 
-    const actions = contentEl.createDiv({ cls: "notion-navigation-modal-actions" });
+    const actions = contentEl.createDiv({ cls: "sectioned-sidebar-modal-actions" });
     const cancel = actions.createEl("button", { text: t("cancel") });
     cancel.addEventListener("click", () => this.close());
     const confirm = actions.createEl("button", { cls: "mod-cta", text: this.options.confirmText || t("save") });
@@ -288,13 +288,13 @@ class ConfirmModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     const t = this.options.t;
-    contentEl.addClass("notion-navigation-modal");
+    contentEl.addClass("sectioned-sidebar-modal");
     contentEl.createEl("h2", { text: this.options.title });
     contentEl.createEl("p", {
-      cls: "notion-navigation-modal-description",
+      cls: "sectioned-sidebar-modal-description",
       text: this.options.description,
     });
-    const actions = contentEl.createDiv({ cls: "notion-navigation-modal-actions" });
+    const actions = contentEl.createDiv({ cls: "sectioned-sidebar-modal-actions" });
     actions.createEl("button", { text: t("cancel") }).addEventListener("click", () => this.close());
     actions
       .createEl("button", { cls: "mod-warning", text: this.options.confirmText || t("confirm") })
@@ -342,7 +342,7 @@ class VaultItemSuggestModal extends FuzzySuggestModal {
   }
 }
 
-class NotionNavigationView extends ItemView {
+class SectionedSidebarView extends ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -367,15 +367,15 @@ class NotionNavigationView extends ItemView {
   render() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("notion-navigation-view");
+    contentEl.addClass("sectioned-sidebar-view");
 
-    const toolbar = contentEl.createDiv({ cls: "notion-navigation-toolbar" });
-    const title = toolbar.createDiv({ cls: "notion-navigation-title" });
-    const mark = title.createSpan({ cls: "notion-navigation-mark" });
+    const toolbar = contentEl.createDiv({ cls: "sectioned-sidebar-toolbar" });
+    const title = toolbar.createDiv({ cls: "sectioned-sidebar-title" });
+    const mark = title.createSpan({ cls: "sectioned-sidebar-mark" });
     setIcon(mark, "panel-left");
     title.createSpan({ text: this.plugin.t("navigation") });
 
-    const toolbarActions = toolbar.createDiv({ cls: "notion-navigation-toolbar-actions" });
+    const toolbarActions = toolbar.createDiv({ cls: "sectioned-sidebar-toolbar-actions" });
     this.createIconButton(toolbarActions, "plus", this.plugin.t("newSection"), (event) => {
       event.stopPropagation();
       this.plugin.promptCreateSection();
@@ -385,7 +385,7 @@ class NotionNavigationView extends ItemView {
       this.app.setting.openTabById(this.plugin.manifest.id);
     });
 
-    const sectionsEl = contentEl.createDiv({ cls: "notion-navigation-sections" });
+    const sectionsEl = contentEl.createDiv({ cls: "sectioned-sidebar-sections" });
     for (const section of this.plugin.settings.sections) {
       this.renderSection(sectionsEl, section);
     }
@@ -393,7 +393,7 @@ class NotionNavigationView extends ItemView {
 
   createIconButton(parent, icon, label, callback) {
     const button = parent.createEl("button", {
-      cls: "notion-navigation-icon-button clickable-icon",
+      cls: "sectioned-sidebar-icon-button clickable-icon",
       attr: { "aria-label": label, type: "button" },
     });
     setIcon(button, icon);
@@ -402,21 +402,21 @@ class NotionNavigationView extends ItemView {
   }
 
   renderSection(parent, section) {
-    const sectionEl = parent.createDiv({ cls: "notion-navigation-section" });
+    const sectionEl = parent.createDiv({ cls: "sectioned-sidebar-section" });
     sectionEl.dataset.sectionId = section.id;
 
     const header = sectionEl.createDiv({
-      cls: "notion-navigation-row notion-navigation-section-header",
+      cls: "sectioned-sidebar-row sectioned-sidebar-section-header",
       attr: { role: "button", tabindex: "0", "aria-expanded": String(!section.collapsed) },
     });
 
-    const disclosure = header.createSpan({ cls: "notion-navigation-slot notion-navigation-disclosure" });
+    const disclosure = header.createSpan({ cls: "sectioned-sidebar-slot sectioned-sidebar-disclosure" });
     setIcon(disclosure, section.collapsed ? "chevron-right" : "chevron-down");
-    const icon = header.createSpan({ cls: "notion-navigation-slot notion-navigation-section-icon" });
+    const icon = header.createSpan({ cls: "sectioned-sidebar-slot sectioned-sidebar-section-icon" });
     setIcon(icon, section.icon || "folder");
-    header.createSpan({ cls: "notion-navigation-row-label", text: section.name });
+    header.createSpan({ cls: "sectioned-sidebar-row-label", text: section.name });
 
-    const actions = header.createDiv({ cls: "notion-navigation-row-actions" });
+    const actions = header.createDiv({ cls: "sectioned-sidebar-row-actions" });
     this.createIconButton(actions, "plus", this.plugin.t("addToSection", { name: section.name }), (event) => {
       event.stopPropagation();
       this.openAddMenu(section, event);
@@ -446,11 +446,11 @@ class NotionNavigationView extends ItemView {
 
     if (section.collapsed) return;
 
-    const body = sectionEl.createDiv({ cls: "notion-navigation-section-body" });
+    const body = sectionEl.createDiv({ cls: "sectioned-sidebar-section-body" });
     const validItems = uniquePaths(section.items || []);
     if (!validItems.length) {
       const empty = body.createEl("button", {
-        cls: "notion-navigation-empty",
+        cls: "sectioned-sidebar-empty",
         text: this.plugin.t("addFolderOrNote"),
         attr: { type: "button" },
       });
@@ -466,12 +466,12 @@ class NotionNavigationView extends ItemView {
   }
 
   renderMissingItem(parent, section, path) {
-    const row = parent.createDiv({ cls: "notion-navigation-row notion-navigation-item is-file is-missing" });
+    const row = parent.createDiv({ cls: "sectioned-sidebar-row sectioned-sidebar-item is-file is-missing" });
     row.setCssProps({ "--nav-depth": "0" });
-    const icon = row.createSpan({ cls: "notion-navigation-slot" });
+    const icon = row.createSpan({ cls: "sectioned-sidebar-slot" });
     setIcon(icon, "file-question");
-    row.createSpan({ cls: "notion-navigation-row-label", text: path });
-    const actions = row.createDiv({ cls: "notion-navigation-row-actions" });
+    row.createSpan({ cls: "sectioned-sidebar-row-label", text: path });
+    const actions = row.createDiv({ cls: "sectioned-sidebar-row-actions" });
     this.createIconButton(actions, "x", this.plugin.t("removeMissingItem"), () => {
       void this.plugin.removeItemFromSection(section.id, path);
     });
@@ -485,7 +485,7 @@ class NotionNavigationView extends ItemView {
     const containsActive = isFolder && activeFile?.path.startsWith(`${item.path}/`);
 
     const row = parent.createDiv({
-      cls: `notion-navigation-row notion-navigation-item ${isFolder ? "is-folder" : "is-file"}${
+      cls: `sectioned-sidebar-row sectioned-sidebar-item ${isFolder ? "is-folder" : "is-file"}${
         isActive ? " is-active" : ""
       }${containsActive ? " is-active-parent" : ""}`,
       attr: {
@@ -498,19 +498,19 @@ class NotionNavigationView extends ItemView {
     row.setCssProps({ "--nav-depth": String(depth) });
 
     const presentation = this.presentationForItem(item, isExpanded);
-    const disclosure = row.createSpan({ cls: "notion-navigation-slot notion-navigation-disclosure" });
+    const disclosure = row.createSpan({ cls: "sectioned-sidebar-slot sectioned-sidebar-disclosure" });
     if (isFolder) setIcon(disclosure, isExpanded ? "chevron-down" : "chevron-right");
-    const icon = row.createSpan({ cls: "notion-navigation-slot notion-navigation-item-icon" });
+    const icon = row.createSpan({ cls: "sectioned-sidebar-slot sectioned-sidebar-item-icon" });
     if (presentation.emoji) {
-      icon.addClass("notion-navigation-emoji");
+      icon.addClass("sectioned-sidebar-emoji");
       icon.setText(presentation.emoji);
     } else {
       setIcon(icon, presentation.icon);
     }
-    row.createSpan({ cls: "notion-navigation-row-label", text: presentation.label });
+    row.createSpan({ cls: "sectioned-sidebar-row-label", text: presentation.label });
 
     if (pinnedRoot) {
-      const actions = row.createDiv({ cls: "notion-navigation-row-actions" });
+      const actions = row.createDiv({ cls: "sectioned-sidebar-row-actions" });
       this.createIconButton(actions, "more-horizontal", this.plugin.t("manageItem", { name: item.name }), (event) => {
         event.stopPropagation();
         this.openItemMenu(section, item, event);
@@ -536,7 +536,7 @@ class NotionNavigationView extends ItemView {
     });
 
     if (isFolder && isExpanded) {
-      const children = parent.createDiv({ cls: "notion-navigation-children" });
+      const children = parent.createDiv({ cls: "sectioned-sidebar-children" });
       children.setCssProps({ "--nav-parent-depth": String(depth) });
       for (const child of this.sortedChildren(item)) {
         this.renderVaultItem(children, section, child, depth + 1, false);
@@ -641,7 +641,7 @@ class NotionNavigationView extends ItemView {
       "info.copy",
       "view",
       "system",
-      "notion-navigation",
+      "sectioned-sidebar",
       "",
       "danger",
     ]);
@@ -745,13 +745,13 @@ class NotionNavigationView extends ItemView {
   appendNavigationItems(menu, section, item, pinnedRoot = true) {
     const path = item.path;
     const index = (section.items || []).indexOf(path);
-    menu.addSections?.(["notion-navigation"]);
-    menu.setSectionSubmenu?.("notion-navigation", {
+    menu.addSections?.(["sectioned-sidebar"]);
+    menu.setSectionSubmenu?.("sectioned-sidebar", {
       title: this.plugin.t("navigationManagement"),
       icon: "panel-left",
     });
 
-    const inNavigationSection = (entry) => entry.setSection?.("notion-navigation") || entry;
+    const inNavigationSection = (entry) => entry.setSection?.("sectioned-sidebar") || entry;
     if (item instanceof TFolder) {
       menu.addItem((entry) => {
         inNavigationSection(entry);
@@ -797,7 +797,7 @@ class NotionNavigationView extends ItemView {
   }
 }
 
-class NotionNavigationSettingTab extends PluginSettingTab {
+class SectionedSidebarSettingTab extends PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -899,11 +899,11 @@ class NotionNavigationSettingTab extends PluginSettingTab {
   }
 }
 
-module.exports = class NotionNavigationPlugin extends Plugin {
+module.exports = class SectionedSidebarPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
-    this.registerView(VIEW_TYPE, (leaf) => new NotionNavigationView(leaf, this));
-    this.addSettingTab(new NotionNavigationSettingTab(this.app, this));
+    this.registerView(VIEW_TYPE, (leaf) => new SectionedSidebarView(leaf, this));
+    this.addSettingTab(new SectionedSidebarSettingTab(this.app, this));
 
     this.ribbonIcon = this.addRibbonIcon("panel-left", this.t("openSidebarNavigation"), () =>
       void this.activateView()
@@ -1052,7 +1052,7 @@ module.exports = class NotionNavigationPlugin extends Plugin {
     return this.app.workspace
       .getLeavesOfType(VIEW_TYPE)
       .map((leaf) => leaf.view)
-      .filter((view) => view instanceof NotionNavigationView);
+      .filter((view) => view instanceof SectionedSidebarView);
   }
 
   async activateView() {

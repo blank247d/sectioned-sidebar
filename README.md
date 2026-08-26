@@ -24,6 +24,14 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 - Follow Obsidian rename events so pinned paths remain valid.
 - Remove matching navigation references when a real note or folder is deleted.
 
+## Use cases
+
+- Build an Obsidian custom sidebar for areas such as Favorites, Projects, Shared, Personal, or Archive.
+- Surface frequently used notes and folders without changing their real vault locations.
+- Create a compact, Notion-inspired workspace navigation while keeping Obsidian's file-based data model.
+- Browse nested folder structures directly from a curated navigation view.
+- Maintain separate navigation groupings for different workflows without duplicating notes.
+
 ## Install
 
 1. Copy this repository into your vault as `.obsidian/plugins/sectioned-sidebar/`.
@@ -37,6 +45,28 @@ Under **Settings → Sectioned Sidebar → Language**, choose **Follow Obsidian*
 ## Data model
 
 Sections and pinned paths are stored in the plugin's `data.json`. Reordering, moving between sections, expanding, collapsing, or removing a navigation item changes only that configuration. Real files are modified only when you choose an explicit file-management action.
+
+## FAQ
+
+### Can I organize notes without moving files?
+
+Yes. Sectioned Sidebar stores references to existing notes and folders. Pinning, reordering, or moving an item between virtual sections does not change its real vault path.
+
+### Can I create Notion-style sidebar sections in Obsidian?
+
+Yes. Section names, order, contents, and collapsed state are customizable. The sections are virtual, while every pinned item remains backed by a real Obsidian file or folder.
+
+### Does Sectioned Sidebar replace Obsidian's native file explorer?
+
+No. The custom navigation and native file explorer remain available in the same left-sidebar tab group, so you can switch between curated navigation and the complete vault tree.
+
+### What happens when I rename or delete a real file?
+
+The plugin follows Obsidian rename events to update pinned paths. When Obsidian confirms that a real note or folder was deleted, matching navigation references are removed.
+
+### Which interface languages are supported?
+
+Sectioned Sidebar supports Simplified Chinese and English and can follow Obsidian's interface language automatically.
 
 ## Development
 

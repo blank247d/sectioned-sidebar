@@ -1,6 +1,6 @@
 # Sectioned Sidebar
 
-A customizable Obsidian sidebar that organizes real vault files and folders under virtual top-level sections.
+Sectioned Sidebar is an Obsidian community plugin for organizing notes and folders into customizable sidebar sections. It provides a flexible, Notion-inspired navigation experience while keeping every item backed by real files and folders in your vault.
 
 ![Sectioned Sidebar overview](assets/sectioned-sidebar-overview.png)
 

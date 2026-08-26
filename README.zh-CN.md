@@ -4,6 +4,8 @@
 
 Sectioned Sidebar 是一款 Obsidian 社区插件，可将笔记和文件夹整理到可自定义的侧边栏分区中。它提供灵活、受 Notion 启发的导航体验，同时确保每个项目都对应仓库中的真实文件或文件夹。
 
+[在 Obsidian 中安装](https://obsidian.md/plugins?id=sectioned-sidebar) · [插件市场页面](https://community.obsidian.md/plugins/sectioned-sidebar) · [最新版本](https://github.com/blank247d/sectioned-sidebar/releases/latest)
+
 ![Sectioned Sidebar 界面概览](assets/sectioned-sidebar-overview.png)
 
 ## 操作演示
@@ -34,9 +36,18 @@ Sectioned Sidebar 是一款 Obsidian 社区插件，可将笔记和文件夹整�
 
 ## 安装
 
-1. 将本仓库复制到 Obsidian 仓库的 `.obsidian/plugins/sectioned-sidebar/` 目录。
-2. 在 Obsidian 中打开 **设置 → 第三方插件**。
-3. 启用 **Sectioned Sidebar**。
+### 通过插件市场安装（推荐）
+
+1. [在 Obsidian 中打开 Sectioned Sidebar](https://obsidian.md/plugins?id=sectioned-sidebar)，或进入 **设置 → 第三方插件 → 浏览** 并搜索 `Sectioned Sidebar`。
+2. 选择 **安装**。
+3. 安装完成后选择 **启用**。
+
+### 手动安装
+
+1. 从[最新版本](https://github.com/blank247d/sectioned-sidebar/releases/latest)下载 `main.js`、`manifest.json` 和 `styles.css`。
+2. 在 Obsidian 仓库中创建 `.obsidian/plugins/sectioned-sidebar/` 目录。
+3. 将下载的三个文件复制到该目录。
+4. 重新加载 Obsidian，打开 **设置 → 第三方插件**，然后启用 **Sectioned Sidebar**。
 
 插件 ID 为 `sectioned-sidebar`。如果你曾通过 `.obsidian/plugins/notion-navigation/` 或 `.obsidian/plugins/sidebar-navigation/` 测试早期预发布版本，请先关闭 Obsidian，再将该文件夹重命名为 `sectioned-sidebar`。保留重命名后文件夹中的 `data.json`，以继续使用原有导航设置。
 

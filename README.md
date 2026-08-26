@@ -4,6 +4,8 @@
 
 Sectioned Sidebar is an Obsidian community plugin for organizing notes and folders into customizable sidebar sections. It provides a flexible, Notion-inspired navigation experience while keeping every item backed by real files and folders in your vault.
 
+[Install in Obsidian](https://obsidian.md/plugins?id=sectioned-sidebar) · [Plugin directory](https://community.obsidian.md/plugins/sectioned-sidebar) · [Latest release](https://github.com/blank247d/sectioned-sidebar/releases/latest)
+
 ![Sectioned Sidebar overview](assets/sectioned-sidebar-overview.png)
 
 ## Interaction demo
@@ -34,9 +36,18 @@ Captured from the real Obsidian interface in an isolated demo vault containing o
 
 ## Install
 
-1. Copy this repository into your vault as `.obsidian/plugins/sectioned-sidebar/`.
-2. In Obsidian, open **Settings → Community plugins**.
-3. Enable **Sectioned Sidebar**.
+### Community plugins (recommended)
+
+1. [Open Sectioned Sidebar in Obsidian](https://obsidian.md/plugins?id=sectioned-sidebar), or open **Settings → Community plugins → Browse** and search for `Sectioned Sidebar`.
+2. Select **Install**.
+3. Select **Enable** after installation finishes.
+
+### Manual installation
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/blank247d/sectioned-sidebar/releases/latest).
+2. Create `.obsidian/plugins/sectioned-sidebar/` inside your vault.
+3. Copy the three downloaded files into that directory.
+4. Reload Obsidian, open **Settings → Community plugins**, and enable **Sectioned Sidebar**.
 
 The plugin ID is `sectioned-sidebar`. If you tested an earlier pre-release build under `.obsidian/plugins/notion-navigation/` or `.obsidian/plugins/sidebar-navigation/`, rename that folder to `sectioned-sidebar` while Obsidian is closed. Keep `data.json` in the renamed folder to preserve your navigation settings.
 

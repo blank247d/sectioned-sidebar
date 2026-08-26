@@ -1,4 +1,4 @@
-# Sectioned Sidebar
+# Sectioned Sidebar — Obsidian 自定义侧边栏导航
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 

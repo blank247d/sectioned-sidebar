@@ -1,4 +1,4 @@
-# Sectioned Sidebar
+# Sectioned Sidebar — Custom Sidebar Navigation for Obsidian
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 

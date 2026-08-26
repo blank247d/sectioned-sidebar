@@ -58,6 +58,10 @@ gh attestation verify main.js --repo blank247d/sectioned-sidebar
 
 To backfill an existing release, run **Attest release assets** from the Actions tab and provide its tag.
 
+## Contributing
+
+Bug reports, feature suggestions, documentation improvements, and code contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull request.
+
 ## License
 
 [MIT](LICENSE) © 2026 blank247d

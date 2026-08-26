@@ -58,6 +58,10 @@ gh attestation verify main.js --repo blank247d/sectioned-sidebar
 
 如需为已有版本补充来源证明，请在 Actions 页面运行 **Attest release assets**，并提供对应标签。
 
+## 参与贡献
+
+欢迎提交错误报告、功能建议、文档改进和代码贡献。创建 Issue 或 Pull Request 前，请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 ## 许可证
 
 [MIT](LICENSE) © 2026 blank247d
